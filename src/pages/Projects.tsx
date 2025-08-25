@@ -1,17 +1,23 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import AdminButton from "@/components/AdminButton";
+import ProjectEditor from "@/components/ProjectEditor";
 import { CreditCard, MapPin, ShoppingCart, ExternalLink } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const Projects = () => {
-  const projects = [
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [projects, setProjects] = useState([
     {
-      id: 1,
+      id: "1",
       title: "Smart Payment Routing",
       description: "Intelligent payment processing system that automatically routes transactions through the most efficient payment gateways, reducing costs and improving success rates.",
-      icon: CreditCard,
+      icon: "CreditCard",
       status: "In Development",
       technologies: ["Node.js", "Python", "AI/ML", "PostgreSQL", "Redis"],
       features: [
@@ -22,10 +28,10 @@ const Projects = () => {
       ]
     },
     {
-      id: 2,
+      id: "2",
       title: "AI Places Search",
       description: "Advanced location discovery platform powered by AI that understands natural language queries and provides contextually relevant place recommendations.",
-      icon: MapPin,
+      icon: "MapPin",
       status: "Beta Testing",
       technologies: ["React", "Python", "OpenAI", "Google Maps API", "FastAPI"],
       features: [
@@ -36,10 +42,10 @@ const Projects = () => {
       ]
     },
     {
-      id: 3,
+      id: "3",
       title: "Shoppin - Natural Language Product Search",
       description: "Revolutionary e-commerce search platform that allows users to find products using natural language queries, making online shopping more intuitive and efficient.",
-      icon: ShoppingCart,
+      icon: "ShoppingCart",
       status: "Production Ready",
       technologies: ["React", "Node.js", "Elasticsearch", "AI/ML", "AWS"],
       features: [
@@ -49,7 +55,35 @@ const Projects = () => {
         "Personalized recommendations"
       ]
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const adminAuth = localStorage.getItem("adminAuthenticated");
+    setIsAdmin(adminAuth === "true");
+    
+    // Load projects from Firebase
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "projects"));
+      const firebaseProjects = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      if (firebaseProjects.length > 0) {
+        setProjects(firebaseProjects as any);
+      }
+    } catch (error) {
+      console.log("Using default projects data");
+    }
+  };
+
+  const handleAdminAuth = () => {
+    setIsAdmin(true);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,9 +107,19 @@ const Projects = () => {
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {projects.map((project) => {
-                const IconComponent = project.icon;
+                const getIconComponent = (iconName: string) => {
+                  switch(iconName) {
+                    case "CreditCard": return CreditCard;
+                    case "MapPin": return MapPin;
+                    case "ShoppingCart": return ShoppingCart;
+                    default: return CreditCard;
+                  }
+                };
+                const IconComponent = typeof project.icon === 'string' 
+                  ? getIconComponent(project.icon) 
+                  : project.icon;
                 return (
-                  <Card key={project.id} className="bg-gradient-card border-border hover:shadow-card transition-spring hover:scale-105">
+                  <Card key={project.id} className="bg-gradient-card border-border hover:shadow-card transition-spring hover:scale-105 relative group">
                     <CardHeader>
                       <div className="flex items-center justify-between mb-4">
                         <div className="p-3 bg-gradient-primary rounded-lg shadow-glow">
@@ -150,6 +194,9 @@ const Projects = () => {
       </main>
 
       <Footer />
+      
+      {!isAdmin && <AdminButton onAuthenticated={handleAdminAuth} />}
+      {isAdmin && <ProjectEditor projects={projects} onProjectsChange={setProjects} />}
     </div>
   );
 };
