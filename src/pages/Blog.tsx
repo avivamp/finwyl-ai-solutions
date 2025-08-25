@@ -1,20 +1,14 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import AdminButton from "@/components/AdminButton";
-import BlogEditor from "@/components/BlogEditor";
 import { Calendar, User, ArrowRight, TrendingUp } from "lucide-react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 const Blog = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [blogPosts, setBlogPosts] = useState([
+  const blogPosts = [
     {
-      id: "1",
+      id: 1,
       title: "The Future of AI in Software Development",
       excerpt: "Explore how artificial intelligence is revolutionizing the way we build software, from automated code generation to intelligent debugging.",
       author: "John Smith",
@@ -24,7 +18,7 @@ const Blog = () => {
       featured: true
     },
     {
-      id: "2",
+      id: 2,
       title: "Building Scalable Payment Systems: Lessons Learned",
       excerpt: "Our journey building Smart Payment Routing and the architectural decisions that enabled us to process millions of transactions reliably.",
       author: "Sarah Johnson",
@@ -34,7 +28,7 @@ const Blog = () => {
       featured: false
     },
     {
-      id: "3",
+      id: 3,
       title: "Natural Language Processing in E-commerce Search",
       excerpt: "How we implemented NLP to make product discovery more intuitive in our Shoppin platform, improving user experience by 300%.",
       author: "Mike Chen",
@@ -44,7 +38,7 @@ const Blog = () => {
       featured: false
     },
     {
-      id: "4",
+      id: 4,
       title: "Cloud Infrastructure Best Practices for Startups",
       excerpt: "Essential cloud architecture patterns and cost optimization strategies for scaling your startup infrastructure on AWS and Azure.",
       author: "Emily Davis",
@@ -54,7 +48,7 @@ const Blog = () => {
       featured: false
     },
     {
-      id: "5",
+      id: 5,
       title: "The Rise of Location Intelligence",
       excerpt: "Understanding how AI-powered location services are transforming industries from retail to logistics and beyond.",
       author: "David Wilson",
@@ -64,7 +58,7 @@ const Blog = () => {
       featured: false
     },
     {
-      id: "6",
+      id: 6,
       title: "Full-Stack Development in 2024: Modern Trends",
       excerpt: "Latest trends in full-stack development, from serverless architectures to JAMstack and the tools that are shaping the future.",
       author: "Lisa Rodriguez",
@@ -73,35 +67,7 @@ const Blog = () => {
       readTime: "9 min read",
       featured: false
     }
-  ]);
-
-  useEffect(() => {
-    const adminAuth = localStorage.getItem("adminAuthenticated");
-    setIsAdmin(adminAuth === "true");
-    
-    // Load blog posts from Firebase
-    loadBlogPosts();
-  }, []);
-
-  const loadBlogPosts = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "blogPosts"));
-      const firebasePosts = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      if (firebasePosts.length > 0) {
-        setBlogPosts(firebasePosts as any);
-      }
-    } catch (error) {
-      console.log("Using default blog posts data");
-    }
-  };
-
-  const handleAdminAuth = () => {
-    setIsAdmin(true);
-  };
+  ];
 
   const categories = [
     "All",
@@ -197,7 +163,7 @@ const Blog = () => {
             <h2 className="text-2xl font-bold mb-8 text-foreground">Latest Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {blogPosts.filter(post => !post.featured).map((post) => (
-                <Card key={post.id} className="bg-gradient-card border-border hover:shadow-card transition-spring hover:scale-105 cursor-pointer relative group">
+                <Card key={post.id} className="bg-gradient-card border-border hover:shadow-card transition-spring hover:scale-105 cursor-pointer">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-4">
                       <Badge variant="outline" className="text-xs">
@@ -254,9 +220,6 @@ const Blog = () => {
       </main>
 
       <Footer />
-      
-      {!isAdmin && <AdminButton onAuthenticated={handleAdminAuth} />}
-      {isAdmin && <BlogEditor blogPosts={blogPosts} onBlogPostsChange={setBlogPosts} />}
     </div>
   );
 };
